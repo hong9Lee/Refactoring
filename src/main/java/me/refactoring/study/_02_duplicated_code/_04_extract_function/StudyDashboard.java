@@ -57,7 +57,7 @@ public class StudyDashboard {
         return participants;
     }
 
-    private GHIssue getGhIssue(int eventId) {
+    private GHIssue getGhIssue(int eventId) { // 함수 이름으로 표현
         GitHub gitHub = GitHub.connect();
         GHRepository repository = gitHub.getRepository("me/live-study");
         GHIssue issue = repository.getIssue(eventId);

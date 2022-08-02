@@ -31,7 +31,7 @@ public class StudyDashboard {
         GHIssue issue = repository.getIssue(30);
 
         // Get reviewers
-        Set<String> reviewers = new HashSet<>();
+        Set<String> reviewers = new HashSet<>(); // 해당 변수를 사용하는 코드 바로 위에 선언.
         issue.getComments().forEach(c -> reviewers.add(c.getUserName()));
 
         // Print reviewers
