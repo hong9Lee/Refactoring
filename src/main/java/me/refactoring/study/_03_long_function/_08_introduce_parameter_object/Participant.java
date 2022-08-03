@@ -1,4 +1,4 @@
-package me.refactoring.study._08_introduce_parameter_object;
+package me.refactoring.study._03_long_function._08_introduce_parameter_object;
 
 public record Participant(String username, Map<Integer, Boolean> homework) {
     public Participant(String username) {

@@ -1,4 +1,4 @@
-package me.refactoring.study._08_introduce_parameter_object;
+package me.refactoring.study._03_long_function._09_preserve_whole_object;
 
 import org.kohsuke.github.GHIssue;
 import org.kohsuke.github.GHIssueComment;
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -17,7 +18,7 @@ import java.util.concurrent.Executors;
 
 public class StudyDashboard {
 
-    private int totalNumberOfEvents;
+    private final int totalNumberOfEvents;
 
     public StudyDashboard(int totalNumberOfEvents) {
         this.totalNumberOfEvents = totalNumberOfEvents;
@@ -30,10 +31,9 @@ public class StudyDashboard {
 
     private void print() throws IOException, InterruptedException {
         GitHub gitHub = GitHub.connect();
-        GHRepository repository = gitHub.getRepository("me/live-study");
+        GHRepository repository = gitHub.getRepository("whiteship/live-study");
         List<Participant> participants = new CopyOnWriteArrayList<>();
 
-        totalNumberOfEvents = 15;
         ExecutorService service = Executors.newFixedThreadPool(8);
         CountDownLatch latch = new CountDownLatch(totalNumberOfEvents);
 
@@ -78,23 +78,25 @@ public class StudyDashboard {
             writer.print(header(participants.size()));
 
             participants.forEach(p -> {
-                String markdownForHomework = getMarkdownForParticipant(totalNumberOfEvents, p); // 파라미터가 많다. rate 파라미터를 넘기지 않기 위해 함수로 뺀다.
+//                String markdownForHomework = getMarkdownForParticipant(p.username(), p.homework());
+                String markdownForHomework = getMarkdownForParticipant(p);
                 writer.print(markdownForHomework);
             });
         }
     }
 
-    private double getRate(Participant p) { // getMarkdownForParticipant()의 파라미터와 같다.
-        long count = p.homework().values().stream()
-                .filter(v -> v == true)
-                .count();
-        double rate = count * 100 / totalNumberOfEvents;
-        return rate;
-    }
+    // 이 위치가 적절한가?
+//    private double getRate(Participant participant) {
+//        long count = participant.homework().values().stream()
+//                .filter(v -> v == true)
+//                .count();
+//        return (double) (count * 100 / this.totalNumberOfEvents);
+//    }
 
-    private String getMarkdownForParticipant(Participant p) {
-        String markdownForHomework = String.format("| %s %s | %.2f%% |\n", p.username(), checkMark(p, totalNumberOfEvents), getRate(p));
-        return markdownForHomework;
+    private String getMarkdownForParticipant(Participant participant) {
+        return String.format("| %s %s | %.2f%% |\n", participant.username(),
+                checkMark(participant.homework(), this.totalNumberOfEvents),
+                participant.getRate(this.totalNumberOfEvents);
     }
 
     /**
@@ -118,10 +120,10 @@ public class StudyDashboard {
     /**
      * |:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|
      */
-    private String checkMark(Participant p, int totalEvents) {
+    private String checkMark(Participant participant, int totalEvents) {
         StringBuilder line = new StringBuilder();
         for (int i = 1 ; i <= totalEvents ; i++) {
-            if(p.homework().containsKey(i) && p.homework().get(i)) {
+            if(participant.homework().containsKey(i) && participant.homework().get(i)) {
                 line.append("|:white_check_mark:");
             } else {
                 line.append("|:x:");
