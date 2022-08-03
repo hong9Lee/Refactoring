@@ -3,7 +3,8 @@
 유지보수 업무를 해보며 리팩토링의 중요성을 깨닫게 되었고,  
 내가 짠 소스를 꾸준히 개선해 나가며 버그를 줄이고 코드를 깔끔하게 유지하는 실력을 키우고 싶어 학습하게 됨.
 
-## 1. 이해하기 힘든 이름  
+<details markdown="1">
+<summary> 1. 이해하기 힘든 이름 </summary>    
 깔끔한 코드에서 가장 중요한 것 중 하나가 바로 "좋은 이름"이다.
 역할에 대해 직관적이여야한다.
 
@@ -69,8 +70,11 @@ private Set<String> usernames = new HashSet<>();
 */
 private Set<String> reviewers = new HashSet<>();
 ```
+</details>
 
-## 2. 중복 코드  
+<details markdown="2">
+<summary> 2. 중복 코드 </summary>    
+
 - 중복코드의 단점
 비슷한지, 완전히 동일한 코드인지 주의 깊게 봐야한다.
 코드를 변경할 때, 동일한 모든 곳의 코드를 변경해야 한다.
@@ -121,4 +125,199 @@ issue.getComments().forEach(c -> reviewers.add(c.getUserName()));
 중복 코드는 당장은 잘 동작하더라도 미래에 버그를 만들어 낼 빌미를 제공한다.  
 예) A에서 코드를 고치고, B에는 반영하지 않은 경우  
 비슷하지만 일부 값만 다른 경우라면, "함수 매개변수화 하기" 리팩토링을 적용한 이후에, 이 방법을 사용할 수 있다.  
+</details>
 
+
+<details markdown="3">
+<summary> 3. 긴 함수</summary>  
+-짧은함수 vs 긴함수  
+
+함수가 길 수록 더 이해하기 어렵다 vs 짧은 함수는 더 많은 문맥전환을 필요로 한다.  
+작은함수에 "좋은 이름"을 사용했다면 해당 함수의 코드를 보지 않고도 이해할 수 있다.  
+어떤 코드에 "주석"을 남기고 싶다면, 주석 대신 함수를 만들고 함수의 이름으로 "의도"를 표현하면 된다.  
+
+-사용할 수 있는 리팩토링 기술  
+
+99%는 "함수 추출하기"로 해결 가능하다.  
+함수로 분리하면서 해당 함수로 전달해야 할 매개변수가 많아진다면 다음과 같은 리팩토링을 고려해볼 수 있다.  
+"임시 변수를 질의 함수로 바꾸기"  
+"매개변수 객체 만들기"  
+"객체 통째로 넘기기"  
+  
+"조건문 분해하기"를 사용해 조건문을 분리할 수 있다.  
+같은 조건으로 여러개의 Switch문이 있다면, "조건문을 다형성으로 바꾸기"를 사용할 수 있다.  
+반복문 안에서 여러 작업을 하고 있어서 하나의 메소드로 추출하기 어렵다면, "반복문 쪼개기"를 적용할 수 있다.  
+
+
+#### 1. 임시 변수를 질의 함수로 바꾸기
+변수를 사용하면 반복해서 동일한 식을 계산하는 것을 피할 수 있고, 이름을 사용해 의미를 표현할 수도 있다.
+긴 함수를 리팩토링할 때, 그러한 임시 변수를 함수로 추출하여 분리한다면 뺴낸 함수로 전달해야 할 매개변수를 줄일 수 있다.
+
+```
+-- old
+파라미터가 너무 많다고 생각이 될 때, 구현부를 메소드로 빼는 방법이 있다.
+participants.forEach(p -> {
+    long count = p.homework().values().stream()
+            .filter(v -> v == true)
+            .count();
+    double rate = count * 100 / totalNumberOfEvents;
+
+    // 파라미터가 너무 많다.
+    String markdownForHomework = String.format("| %s %s | %.2f%% |\n", p.username(), checkMark(p, totalNumberOfEvents), rate);
+    writer.print(markdownForHomework);
+});
+
+-- new
+participants.forEach(p -> {
+    String markdownForHomework = getMarkdownForParticipant(totalNumberOfEvents, p); 
+    writer.print(markdownForHomework);
+});
+
+private double getRate(int totalNumberOfEvents, Participant p) {
+    long count = p.homework().values().stream()  
+    ...
+    return rate;
+}
+
+private String getMarkdownForParticipant(int totalNumberOfEvents, Participant p) {
+    String markdownForHomework = String.format("| %s %s | %.2f%% |\n", p.username(), checkMark(p, totalNumberOfEvents), getRate(totalNumberOfEvents, p));
+    return markdownForHomework;
+}
+```
+
+#### 2. 매개변수 객체 만들기  
+같은 매개변수들이 여러 메소드에 걸쳐 나타난다면 그 매개변수들을 묶은 자료 구조를 만들 수 있다.  
+그렇게 만든 자료구조는 :   
+	- 해당 데이터간의 관계를 보다 명시적으로 나타낼 수 있다.  
+	- 함수에 전달할 매개변수 개수를 줄일 수 있다.  
+	- 도메인을 이해하는데 중요한 역할을 하는 클래스로 발전할 수도 있다.  
+  
+```
+-- old
+여러 메소드에서 반복되는 필드(totalNumberOfEvents)가 있다면 전역변수로 적용하는 것도 방법이다.
+
+writer.print(header(totalNumberOfEvents, participants.size()));
+...
+
+private double getRate(int totalNumberOfEvents, Participant p) 
+...
+  
+private String getMarkdownForParticipant(int totalNumberOfEvents, Participant p) 
+...
+
+-- new
+
+private int totalNumberOfEvents;
+
+public StudyDashboard(int totalNumberOfEvents) {
+    this.totalNumberOfEvents = totalNumberOfEvents;
+}
+...
+StudyDashboard studyDashboard = new StudyDashboard(15);
+```
+
+
+#### 3. 객체 통째로 넘기기
+하나의 객체에서 구할 수 있는 여러 값들을 함수에 전달하는 경우, 해당 매개변수를 객체 하나로 교체할 수 있다.
+이로써 매개변수 목록을 줄일 수 있다.
+
+```
+-- old
+private String getMarkdownForParticipant(int totalNumberOfEvents, Participant p) {
+	String markdownForHomework = String.format("| %s %s | %.2f%% |\n", p.username(), 
+					checkMark(p, totalNumberOfEvents), getRate(totalNumberOfEvents, p));
+	return markdownForHomework;
+}
+
+-- new
+private String getMarkdownForParticipant(Participant participant) { // 객체를 통째로 넘긴다.
+	return String.format("| %s %s | %.2f%% |\n", participant.username(),
+                checkMark(participant.homework(), this.totalNumberOfEvents),
+		participant.getRate(this.totalNumberOfEvents);
+}
+
+```
+
+
+
+#### 4. 함수를 명령으로 바꾸기  
+함수를 독립적인 객체인, Command로 만들어 사용할 수 있다.  
+커맨드 패턴을 적용하면 다음과 같은 장점을 취할 수 있다.  
+- 부가적인 기능으로 undo 기능을 만들 수도 있다.  
+- 더 복잡한 기능을 구현하는데 필요한 여러 메소드를 추가할 수 있다.  
+- 상속이나 템플릿을 활용할 수도 있다.  
+- 복잡한 메소드를 여러 메소드나 필드를 활용해 쪼갤 수도 있다.  
+
+
+#### 5. 조건문 분해하기  
+여러 조건에 따라 달라지는 코드를 작성하다 보면 함수가 길어지게 된다.  
+"조건"과 "액션" 모두 "의도"를 표현해야한다.  
+"함수 추출하기"와 동일한 리팩토링이지만 의도만 다를 뿐이다.  
+
+#### 6. 반복문 쪼개기
+반복문을 여러개로 쪼개면 보다 쉽게 이해하고 수정할 수 있다.
+```
+# 반복문 쪼개기
+-- old
+for (int index = 1 ; index <= totalNumberOfEvents ; index++) {
+	int eventId = index;
+	service.execute(new Runnable() {
+	@Override
+	public void run() {
+	try {
+		GHIssue issue = repository.getIssue(eventId);
+		List<GHIssueComment> comments = issue.getComments();
+
+		for (GHIssueComment comment : comments) {
+			Participant participant = findParticipant(comment.getUserName(), participants);
+			participant.setHomeworkDone(eventId);
+		}
+		...
+-- new
+for (int index = 1 ; index <= totalNumberOfEvents ; index++) {
+            int eventId = index;
+            service.execute(() -> {
+                try {
+                    GHIssue issue = repository.getIssue(eventId);
+                    checkHomework(issue.getComments(), participants, eventId);
+              ...
+
+private void checkHomework(List<GHIssueComment> comments, List<Participant> participants, int eventId) {
+        for (GHIssueComment comment : comments) {
+            Participant participant = findParticipant(comment.getUserName(), participants);
+            participant.setHomeworkDone(eventId);
+	}
+}
+	
+
+# 메소드 추출하기
+-- old
+private void print() throws IOException, InterruptedException {
+        GitHub gitHub = GitHub.connect();
+        GHRepository repository = gitHub.getRepository("whiteship/live-study");
+        List<Participant> participants = new CopyOnWriteArrayList<>();
+
+        ExecutorService service = Executors.newFixedThreadPool(8);
+        CountDownLatch latch = new CountDownLatch(totalNumberOfEvents);
+	
+	...
+
+-- new
+의미를 부여하여 가능한한 함수로 리팩토링함.
+private void print() throws IOException, InterruptedException {
+        checkGithubIssues(getGhRepository());
+	new StudyPrinter(this.totalNumberOfEvents, this.participants, PrinterMode.MARKDOWN).execute();
+}
+
+private GHRepository getGhRepository() throws IOException {
+	GitHub gitHub = GitHub.connect();
+        return gitHub.getRepository("me/live-study");
+}
+...
+```
+
+#### 7. 조건문을 다형성으로 바꾸기  
+여러 타입에 따라 각기 다른 로직으로 처리해야 하는 경우에 다형성을 적용해서 조건문을 보다 명확하게 분리할 수 있다.  
+공통으로 사용되는 로직은 상위 클래스에 두고 달라지는 부분만 하위 클래스에 둠으로써, 달라지는 부분만 강조할 수 있다.  
+
+</details>
