@@ -321,3 +321,93 @@ private GHRepository getGhRepository() throws IOException {
 공통으로 사용되는 로직은 상위 클래스에 두고 달라지는 부분만 하위 클래스에 둠으로써, 달라지는 부분만 강조할 수 있다.  
 
 </details>
+
+
+
+
+<details markdown="4">
+<summary> 4. 긴 매개변수 목록 </summary>    
+
+어떤 함수에 매개변수가 많을수록 함수의 역할을 이해하기 힘들어진다.  
+- 과연 그 함수는 한가지 일을 하고 있는게 맞는가?  
+- 불필요한 매개변수는 없는가?  
+- 하나의 자료구조로 뭉칠 수 있는 매개변수 목록은 없는가?  
+
+#### 1. 매개변수를 질의 함수로 바꾸기  
+함수의 매개변수 목록은 함수의 다양성을 대변하며, 짧을수록 이해하기 좋다.  
+어떤 한 매개변수를 다른 매개변수를 통해 알아낼 수 있다면 "중복 매개변수"라 생각할 수 있다.  
+매개변수에 값을 전달하는 것은 "함수를 호출하는 쪽"의 책임이다. 가능하면 함수를 호출하는 쪽의 책임을 줄이고 함수 내부에서 책임지도록 노력한다.  
+  
+```
+-- old
+public double finalPrice() {
+	double basePrice = this.quantity * this.itemPrice;
+	int discountLevel = this.quantity > 100 ? 2 : 1;
+        return this.discountedPrice(basePrice, discountLevel);
+}
+
+private double discountedPrice(double basePrice, int discountLevel) {
+	return discountLevel == 2 ? basePrice * 0.9 : basePrice * 0.95;
+}
+
+-- new
+public double finalPrice() {
+	double basePrice = this.quantity * this.itemPrice;
+	return this.discountedPrice(basePrice);
+}
+
+private int discountLevel() {
+	return this.quantity > 100 ? 2 : 1;
+}
+
+private double discountedPrice(double basePrice) { // 매개변수로 전달할 필요 없이 함수를 호출해 사용.
+	return discountLevel() == 2 ? basePrice * 0.9 : basePrice * 0.95;
+}
+```
+
+#### 2. 플래그 인수 제거하기
+플래그는 보통 함수에 매개변수로 전달해서, 함수 내부의 로직을 분기하는데 사용한다.  
+플래그를 사용한 함수는 차이를 파악하기 어렵다.  
+- bookConcert(customer, false), bookConcert(customer, true)  
+- bookConcert(customer), bookConcert(customer)  
+조건문 분해하기를 활용할 수 있다.  
+ 
+```
+-- old
+public LocalDate deliveryDate(Order order, boolean isRush) {
+	if (isRush) {
+		int deliveryTime = switch (order.getDeliveryState()) {
+			case "WA", "CA", "OR" -> 1;
+			case "TX", "NY", "FL" -> 2;
+			default -> 3;
+		};
+		return order.getPlacedOn().plusDays(deliveryTime);
+        } else {
+	...
+
+assertEquals(placedOn.plusDays(1), shipment.deliveryDate(orderFromWA, true));
+assertEquals(placedOn.plusDays(2), shipment.deliveryDate(orderFromWA, false));
+
+-- new
+플래그성 파라미터를 제거하고 조금 더 코드를 명시적으로 만든다.
+public LocalDate regularDeliveryDate(Order order) {
+	int deliveryTime = switch (order.getDeliveryState()) {
+		case "WA", "CA" -> 2;
+		case "OR", "TX", "NY" -> 3;
+		default -> 4;
+        };
+	return order.getPlacedOn().plusDays(deliveryTime);
+}
+
+assertEquals(placedOn.plusDays(1), shipment.rushDeliveryDate(orderFromWA));
+assertEquals(placedOn.plusDays(2), shipment.regularDeliveryDate(orderFromWA));
+
+```
+
+#### 3. 여러 함수를 클래스로 묶기  
+
+비슷한 매개변수 목록을 여러 함수에서 사용하고 있다면 해당 메소드를 모아서 클래스를 만들 수 있다.  
+클래스 내부로 메소드를 옮기고, 데이터를 필드로 만들면 메소드에 전달해야 하는 매개변수 목록도 줄일 수 있다.  
+
+
+</details>
