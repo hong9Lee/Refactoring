@@ -413,7 +413,7 @@ assertEquals(placedOn.plusDays(2), shipment.regularDeliveryDate(orderFromWA));
 </details>
 
 
-<details markdown="4">
+<details markdown="5">
 <summary> 5. 전역 데이터 </summary>    
 전역 데이터는 아무곳에서나 변경될 수 있다는 문제가 있다.  
 어떤 코드로 인해 값이 바뀐 것인지 파악하기 어렵다.  
@@ -452,4 +452,116 @@ public static void setHeating(Boolean heating) {
 }
 ...
 ```
+</details>
+
+
+
+<details markdown="6">
+<summary> 6. 가변 데이터 </summary>    
+데이터를 변경하다보면 예상치 못했던 결과나 해결하기 어려운 버그가 발생하기도 한다.
+함수형 프로그래밍 언어는 데이터를 변경하지 않고 복사본을 전달한다.
+하지만 그 밖의 프로그래밍 언어는 데이터 변경을 허용하고 있다.
+따라서 변경되는 데이터 사용 시 발생할 수 있는 리스크를 관리할 수 있는 방법을 적용하는 것이 좋다.
+
+#### 1.변수 쪼개기
+어떤 변수가 여러번 재할당 되어도 적절한 경우  
+- 반복문에서 순회하는데 사용하는 변수 또는 인덱스  
+- 값을 축적시키는데 사용하는 변수  
+  
+그 밖에 경우에 재할당 되는 변수가 있면 해당 변수는 여러 용도로 사용되는 것이며 변수를 분리해야 더 이해하기 좋은 코드를 만들 수 있다.  
+- 변수 하나 당 하나의 책임을 지도록 만든다.  
+- 상수를 활용하자. js의 const, 자바의 final  
+
+```
+1. final 키워드를 활용해 값의 고정을 명확하게 표현한다.
+-- old
+
+double acc = primaryForce / mass;
+result = 0.5 * acc * primaryTime * primaryTime;
+
+if (secondaryTime > 0) {
+	double primaryVelocity = acc * delay;
+	acc = (primaryForce + secondaryForce) / mass;
+	result += primaryVelocity * secondaryTime + 0.5 * acc * secondaryTime + secondaryTime;
+	...
+}
+
+-- new 
+
+final double primaryAcceleration = primaryForce / mass;
+result = 0.5 * primaryAcceleration * primaryTime * primaryTime;
+
+if (secondaryTime > 0) {
+	final double primaryVelocity = primaryAcceleration * delay;
+	final double secondaryAcceleration = (primaryForce + secondaryForce) / mass;
+	result += primaryVelocity * secondaryTime + 0.5 * secondaryAcceleration * secondaryTime + secondaryTime;
+}
+	...
+
+
+2. input 파라미터를 그대로 사용하는것보다 변수를 사용하여 명확하게 표현한다.
+-- old 
+
+public double discount(double inputValue, int quantity) {
+        if (inputValue > 50) inputValue = inputValue - 2;
+        if (quantity > 100) inputValue = inputValue - 1;
+        return inputValue;
+}
+    
+-- new
+
+public double discount(double inputValue, int quantity) {
+        double result = inputValue;
+        if (inputValue > 50) result -= 2;
+        if (quantity > 100) result -= 1;
+        return result;
+}
+```
+
+
+#### 2. 질의 함수와 변경 함수 분리하기
+"눈에 띌만한" 사이드 이팩트 없이 값을 조회할 수 있는 메소드는 테스트 하기도 쉽고, 메소드를 이동하기도 편하다.  
+  
+명령-조회 분리 규칙:  
+- 어떤 값을 리턴하는 함수는 사이드 이팩트가 없어야 한다.  
+
+
+```
+1. 명확한 함수의 사용을 위해 조회와 알람 함수를 분리한다.
+-- old
+public String alertForMiscreant(List<Person> people) {
+        for (Person p : people) {
+            if (p.getName().equals("Don")) {
+                setOffAlarms();
+                return "Don";
+            }
+
+            if (p.getName().equals("John")) {
+                setOffAlarms();
+                return "John";
+            }
+        }
+        return "";
+}
+-- new 
+public void alertForMiscreant(List<Person> people) {
+        if(!findMiscreant(people).isBlank()) setOffAlarms();
+}
+
+public String findMiscreant(List<Person> people) {
+        for (Person p : people) {
+            if (p.getName().equals("Don")) return "Don";
+            if (p.getName().equals("John")) return "John";
+        }
+
+        return "";
+}
+```
+
+
+#### 3. 세터 제거하기
+세터를 제공한다는 것은 해당 필드가 변경될 수 있다는 것을 뜻한다.  
+객체 생성시 처음 설정된 값이 변경될 필요가 없다면 해당 값을 설정할 수 있는 생성자를 만들고 세터를 제거해서 변경될 수 있는 가능성을 제거해야 한다.  
+
+
 </details>
