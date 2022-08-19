@@ -726,7 +726,6 @@ public String telephoneNumber() {
 
 -- new
 // 하위 클래스로 위임.
--- new  
 
 private final TelephoneNumber telephoneNumber;
 public String telephoneNumber() {
