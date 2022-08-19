@@ -629,7 +629,7 @@ public double getProduction() {
 <details markdown="7">
 <summary> 7. 뒤엉킨 변경 </summary>    
 소프트웨어는 변경에 유연하게(soft) 대처할 수 있어야 한다.  
-  
+    
 어떤 한 모듈이(함수 또는 클래스가) 여러가지 이유로 다양하게 변경되어야 하는 상황.  
 예) 새로운 결제 방식을 도입하거나, DB를 변경할 때 동일한 클래스에 여러 메소드를 수정해야 하는 경우.  
   
@@ -709,7 +709,9 @@ private double applyShipping(PriceData priceData, ShippingMethod shippingMethod)
 클래스를 쪼개는 기준  
 - 데이터나 메소드 중 일부가 매우 밀접한 관련이 있는 경우.  
 - 일부 데이터가 대부분 같이 바뀌는 경우.  
-- 데이터 또는 메소드 중 일부를 삭제한다면 어떻게 될 것인가?  
+- 데이터 또는 메소드 중 일부를 삭제한다면 어떻게 될 것인가?    
+
+
 하위 클래스를 만들어 책임을 분산 시킬 수도 있다.  
 
 ```
