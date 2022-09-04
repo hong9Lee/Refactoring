@@ -735,3 +735,67 @@ public String telephoneNumber() {
 ```
 </details>
 
+
+<details markdown="8">
+<summary> 8. 산탄총 수술 </summary>    
+  
+어떤 한 변경 사항이 생겼을 때 여러 모듈을 수정해야 하는 상황. ("한가지" 변경사항으로 "여러 모듈" 수정)  
+변경 사항이 여러곳에 흩어진다면 찾아서 고치기도 어렵고 중요한 변경 사항을 놓칠 수 있는 가능성도 생긴다.  
+  
+#### 1. 필드 옮기기
+
+좋은 데이터 구조를 가지고 있다면, 해당 데이터에 기반한 어떤 행위를 코드로(메소드나 함수)옮기는 것도 간편하고 단순해진다.  
+처음에는 타당해 보였던 설게적인 의사 결정도 프로그램이 다루고 있는 도메인과 데이터 구조에 대해 더 많이 익혀나가면서, 틀린 의사 결정으로 바뀌는 경우도 있다.  
+  
+필드를 옮기는 단서:  
+- 어떤 데이터를 항상 어떤 클래스와 함께 전달하는 경우.  
+- 어떤 클래스를 변경할 때 다른 클래스에 있는 필드를 변경해야 하는 경우.  
+- 여러 클래스에 동일한 필드를 수정해야 하는 경우.  
+  
+```
+// discountRate 필드를 CustomerContract 클래스로 옮겨 변경 사항이 발생했을때 대처하기 수월하게 리팩토링.
+
+-- Customer Class
+private CustomerContract contract;
+
+public Customer(String name, double discountRate) {
+	this.name = name;
+        this.contract = new CustomerContract(dateToday(), discountRate);
+}
+
+public double getDiscountRate() {
+        return this.contract.getDiscountRate();
+}
+
+```
+
+#### 2. 함수 인라인
+"함수 추출하기"의 반대에 해당하는 리팩토링  
+간혹, 함수 본문(소스)이 함수 이름 만큼 또는 그보다 더 잘 의도를 표현하는 경우도 있다.  
+  
+```
+-- old
+//  소스를 읽지 않아도 moreThanFiveLateDeliveries 이라는 이름으로 잘 표현했지만, 소스와 메서드 이름의 큰 차이가 없다.
+
+public int rating(Driver driver) {
+        return moreThanFiveLateDeliveries(driver) ? 2 : 1;
+}
+
+private boolean moreThanFiveLateDeliveries(Driver driver) {
+        return driver.getNumberOfLateDeliveries() > 5;
+}
+
+-- new 
+public int rating(Driver driver) {
+        return driver.getNumberOfLateDeliveries() > 5 ? 2 : 1;
+}
+
+```
+
+#### 3. 클래스 인라인  
+"클래스 추출하기"의 반대에 해당하는 리팩토링  
+리팩토링을 하는 중에 클래스의 책임을 옮기다 보면 클래스의 존재 이유가 빈약해지는 경우가 발생할 수 있다.  
+존재 이유가 빈약한 클래스의 필드먼저 옮기고 메서드를 옮긴 후 클래스를 삭제하면 컴파일 에러를 줄이며 편하게 옮길 수 있다.
+
+
+</details>
