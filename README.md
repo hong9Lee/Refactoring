@@ -799,3 +799,46 @@ public int rating(Driver driver) {
 
 
 </details>
+
+
+
+<details markdown="9">
+<summary> 9. 기능 편애 </summary>    
+  
+어떤 모듈에 있는 함수가 다른 모듈에 있는 데이터나 함수를 더 많이 참조하는 경우에 발생한다.  
+예) 다른 객체의 getter를 여러개 사용하는 메소드  
+- "함수 옮기기"를 사용해서 함수를 적절한 위치로 옮긴다.  
+- 함수 일부분만 다른 곳의 데이터와 함수를 많이 참조한다면 "함수 추출하기"로 함수를 나눈 다음에 함수를 옮길 수 있다.  
+  
+만약에 여러 모듈을 참조하고 있다면, 그 중에서 가장 많은 데이터를 참조하는 곳으로 옮기거나, 함수를 여러개로 쪼개서 각 모듈로 분산 시킬 수 있다.  
+데이터와 해당 데이터를 참조하는 행동을 같은 곳에 두도록 하자.  
+  
+  
+```
+-- old
+// Bill Class에서 ElectricityUsage, GasUsage 클래스의 데이터를 참조하여 계산한다. 이것을 각각의 모듈로 옮겨 리팩토링한다.
+double electicityBill = electricityUsage.getAmount() * electricityUsage.getPricePerUnit();
+double gasBill = gasUsage.getAmount() * gasUsage.getPricePerUnit();
+return electicityBill + gasBill;
+
+-- new 
+
+// ElectricityUsage Class
+public double getElecticityBill() {
+        return this.getAmount() * this.getPricePerUnit();
+}
+
+// GasUsage Class
+public double getGasBill() {
+        return this.getAmount() * this.getPricePerUnit();
+}
+
+// Bill Class
+public double calculateBill() {
+        return electricityUsage.getElecticityBill() + gasUsage.getGasBill();
+}
+
+```
+
+
+</details>
