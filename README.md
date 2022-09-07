@@ -842,3 +842,54 @@ public double calculateBill() {
 
 
 </details>
+
+
+<details markdown="9">
+<summary> 10. 데이터 뭉치 </summary>    
+  
+항상 뭉쳐 다니는 데이터는 한 곳으로 모아두는 것이 좋다.  
+- 여러 클래스에 존재하는 비슷한 필드 목록  
+- 여러 함수에 전달하는 매개변수 목록    
+
+```
+-- old
+// areaCode, number를 서로 다른 클래스에서 병합하여 phoneNumber로 사용하고 있다.
+
+
+// Office Class
+private String officeAreCode;
+private String officeNumber;
+public String officePhoneNumber() {
+        return officeAreCode + "-" + officeNumber;
+}
+
+
+// Employee Class
+private String personalAreaCode;
+private String personalNumber;
+public String personalPhoneNumber() {
+        return personalAreaCode + "-" + personalNumber;
+}
+
+
+-- new
+// 항상 뭉쳐다니며 같은 기능을 하는 필드를 새로운 클래스(TelephoneNumber Class)로 추출한다.
+
+// TelephoneNumber Class
+private String areaCode;
+private String number;
+
+@Override
+public String toString() {
+        return this.areaCode + "-" + this.number;
+}
+
+// Employee, Office Class
+private TelephoneNumber personalPhoneNumber;
+public String personalPhoneNumber() {
+        return this.personalPhoneNumber.toString();
+}
+```
+
+
+</details>
