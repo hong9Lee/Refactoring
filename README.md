@@ -891,5 +891,62 @@ public String personalPhoneNumber() {
 }
 ```
 
+</details>
+
+
+
+<details markdown="11">
+<summary> 11. 기본형 집착 </summary>    
+
+어플리케이션이 다루고 있는 도메인에 필요한 기본 타입을 만들지 않고 프로그래밍 언어가 제공하는 기본 타입을 사용하는 경우가 많다.  
+예) 전화번호, 좌표, 돈, 범위, 수량 등  
+기본형으로는 단위(인치 vs 미터) 또는 표기법을 표현하기 어렵다.  
+
+#### 1. 기본형을 객체로 바꾸기  
+개발 초기에는 기본형 (숫자 또는 문자열)으로 표현한 데이터가 나중에는 해당 데이터와 관련있는 다양한 기능을 필요로 하는 경우가 발생한다.  
+예) 문자열로 표현하던 전화번호의 지역코드가 필요하거나 다양한 포맷을 지원하는 경우.  
+예) 숫자로 표현하던 온도의 단위(화씨, 섭씨)를 변환하는 경우.  
+기본형을 사용한 데이터를 감싸 줄 클래스를 만들면, 필요한 기능을 추가할 수 있다.  
+  
+
+```
+-- old
+...
+.filter(o -> o.getPriority() == "high" || o.getPriority() == "rush")
+...
+
+-- new
+// 기본형을 객체로 만들어 필요한 기능을 추가한다.
+...
+.filter(o -> o.getPriority().higherThen(new Priority("normal")))
+...
+
+// Priority Class
+private List<String> legalValues = List.of("low", "normal", "high", "rush");
+public boolean higherThen(Priority other) {
+        return this.index() > other.index();
+}
+
+// Order Class 생성자의 String 매개변수의 type 체크가 필요하여 생성자 체인 사용.
+public Order(String priority) {
+        this(new Priority(priority));
+}
+
+public Order(Priority priority) {
+        this.priority = priority;
+}
+
+// String 타입의 type safety를 검사
+public Priority(String value) {
+if (legalValues.contains(value)){
+	this.value = value;
+	...
+	
+```
+
+
+
+
+
 
 </details>
