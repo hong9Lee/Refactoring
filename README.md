@@ -945,6 +945,50 @@ if (legalValues.contains(value)){
 ```
 
 
+#### 2. 타입 코드를 서브 클래스로 바꾸기
+비슷하지만 다른 것들을 표현해야 하는 경우, 문자열(String), 열거형(enum), 숫자(int) 등으로 표현하기도 한다.
+예) 주문타입, "일반 주문", "빠른 주문"
+예) 직원 타입, "엔지니어", "매니저", "세일즈"
+
+타입을 서브클래스로 바꾸는 계기
+- 조건문을 다형성으로 표현할 수 있을 때, 서브클래스로 만들고 "조건부 로직을 다형성으로 바꾸기"를 적용한다.
+
+```
+-- old
+
+private String type;
+public Employee(String name, String type) {
+        this.validate(type);
+        this.name = name;
+        this.type = type;
+}
+    
+private void validate(String type) {
+	List<String> legalTypes = List.of("engineer", "manager", "salesman");
+	if (!legalTypes.contains(type)) throw new IllegalArgumentException(type);
+	...
+
+-- new 
+
+// type 변수를 삭제하고 타입에 따른 서브클래스를 생성해 다형성으로 바꾼다.
+public static Employee createEmployee(String name, String type) {
+        switch (type) {
+            case "engineer" :
+                return new Engineer(name);
+            case "manager" :
+                return new Manager(name);
+	    ...
+            default:
+                throw new IllegalArgumentException(type);
+        }
+}
+
+assertEquals("engineer", Employee.createEmployee("hong", "engineer").getType());
+
+```
+
+
+
 
 
 
