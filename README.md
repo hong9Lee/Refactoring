@@ -987,9 +987,61 @@ assertEquals("engineer", Employee.createEmployee("hong", "engineer").getType());
 
 ```
 
+#### 3. 조건부 로직을 다형성으로 바꾸기  
+- 복잡한 조건식을 상속과 다형성을 사용해 코드를 보다 명확하게 분리할 수 있다.  
+- 기본 동작과 (타입에 따른) 특수한 기능이 섞여있는 경우에 상속 구조를 만들어서 기본 동작을 상위클래스에 두고 특수한 기능을 하위 클래스로 옮겨서 각 타입에 따른 "차이점"을 강조할 수 있다.  
+  
+
+```
+-- old
+// 기존 코드에 type이 "china" 인지를 판별하여 다른 result 계산식이 존재한다.
+private int captainHistoryRisk() {
+        int result = 1;
+        if (this.history.size() < 5) result += 4;
+        result += this.history.stream().filter(v -> v.profit() < 0).count();
+        if (this.voyage.zone().equals("china") && this.hasChinaHistory()) result -= 2; // HERE!!
+        return Math.max(result, 0);
+}
+
+private int voyageProfitFactor() {
+        int result = 2;
+
+        if (this.voyage.zone().equals("china")) result += 1;
+        if (this.voyage.zone().equals("east-indies")) result +=1 ;
+        if (this.voyage.zone().equals("china") && this.hasChinaHistory()) { // HERE!!
+            result += 3;
+            if (this.history.size() > 10) result += 1;
+            if (this.voyage.length() > 12) result += 1;
+            if (this.voyage.length() > 18) result -= 1;
+        } else {
+            if (this.history.size() > 8) result +=1 ;
+            if (this.voyage.length() > 14) result -= 1;
+        }
+
+        return result;
+}
+
+-- new 
+// Factory 패턴을 적용해 type이 "china" 일 때 생성되는 객체를 다르게 만든다.
+// VoyageRating 이라는 기본 동작 클래스를 상위에 두고 ChinaExperiencedVoyageRating 이라는 하위 클래스가 상속받아 메소드 오버라이딩을 통해 차이점을 구현한다.
+
+// 다른 객체 생성
+if(voyage.zone().equals("china") && hasChinaHistory(history)) {
+            return new ChinaExperiencedVoyageRating(voyage, history);
+        } else {
+            return new VoyageRating(voyage, history);
+}
 
 
-
+// VoyageRating을 상속받은 ChinaExperiencedVoyageRating 하위 Class
+protected int voyageLengthFactor() {
+        int result = 0;
+        result += 3;
+        if (this.voyage.length() > 12) result += 1;
+        if (this.voyage.length() > 18) result -= 1;
+        return result;
+}
+```
 
 
 
