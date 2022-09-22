@@ -1082,3 +1082,131 @@ authors.stream()
 ```
 
 </details>
+
+
+
+<details markdown="13">
+<summary> 13. 성의없는 요소 </summary>    
+ 
+여러 프로그래밍적인 요소(변수, 메소드, 클래스 등)를 만드는 이유  
+- 나중에 발생할 변화를 대비해서  
+- 해당 함수 또는 클래스를 재사용하려고  
+- 의미있는 이름을 지어주려고  
+  
+가끔 그렇게 예상하고 만들어 놓은 요소들이 기대에 부응하지 못하는 경우가 있는데 그런 경우에 해당 요소들을 제거해야한다.  
+
+#### 1. 계층 합치기
+상속 구조를 리팩토링하는 중에 기능을 올리고 내리다 보면 하위클래스와 상위클래스 코드에 차이가 없는 경우가 발생할 수 있다.  
+그런 경우에 그 둘을 합칠 수 있다.  
+하위클래스와 상위클래스 중에 어떤 것을 없애야 하는가? (둘 중에 보다 이름이 적절한 쪽을 선택하지만, 애매하다면 어느쪽을 선택해도 문제없다.)
+
+
+</details>
+
+<details markdown="14">
+<summary> 14. 추측성 일반화 </summary>    
+
+나중에 이러 저러한 기능이 생길 것으로 예상하여, 여러 경우에 필요로 할만한 기능을 만들어 놨지만 결국에 쓰이지 않는 코드가 발생한 경우.  
+
+#### 1. 죽은 코드제거하기
+실제로 나중에 필요해질 코드라 하더라도 지금 쓰이지 않는 코드라면 주석으로 감싸는게 아니라 삭제해야 한다.
+
+</details>
+
+
+
+<details markdown="15">
+<summary> 15. 임시필드 </summary>    
+  
+클래스에 있는 어떤 필드가 특정한 경우에만 값을 갖는 경우.  
+어떤 객체의 필드가 "특정한 경우에만" 값을 가진다는 것을 이해하는 것은 일반적으로 예상하지 못하기 때문에 이해하기 어렵다.  
+  
+#### 1. 특이 케이스 추가하기
+어떤 필드의 특정한 값에 따라 동일하게 동작하는 코드가 반복적으로 나타난다면, 해당 필드를 감싸는 "특별한 케이스"를 만들어 해당 조건을 표현할 수 있다.  
+이러한 매커니즘을 "특이 케이스 패턴"이라고 부르고 "Null Object 패턴"을 이러한 패턴의 특수한 형태라고 볼 수 있다.  
+
+```
+
+-- old
+// 여러 메소드에서 customer의 name이 "unknown"인지 파악하는 코드가 반복된다. 
+// 따라서 UnknownCustomer 이라는 클래스를 만들어 반복 코드를 리팩토링한다.
+
+// CustomerService Class
+public String customerName(Site site) {
+	if (customer.getName().equals("unknown")) { // HERE!!
+            customerName = "occupant";
+        } else {
+            customerName = customer.getName();
+	}
+	...
+	
+public BillingPlan billingPlan(Site site) {
+	return customer.getName().equals("unknown") ? new BasicBillingPlan() : customer.getBillingPlan(); // HERE!!
+...
+
+public int weeksDelinquent(Site site) {
+	return customer.getName().equals("unknown") ? 0 : customer.getPaymentHistory().getWeeksDelinquentInLastYear(); // HERE!!
+...
+
+-- new
+
+// UnknownCustomer Class extends Customer
+public UnknownCustomer() {
+        super("unknown", null, null);
+}
+
+
+
+-- old
+// CustomerService에서 사용되는 Customer 정보는 site.getCustomer() 메서드를 통해 가져온다.
+// 이 메서드에서 Customer의 타입을 판별해 가지고 온다면 메서드를 간결하게 리팩토링할 수 있다.
+
+
+// Site Class
+public Site(Customer customer) {
+        this.customer = customer.getName().equals("unknown") ? new UnknownCustomer() : customer;
+}
+
+// Customer Service
+public BillingPlan billingPlan(Site site) {
+        return site.getCustomer().getBillingPlan();
+}
+
+// UnkownCustomer Class
+public UnknownCustomer() {
+        super("unknown", new BasicBillingPlan(), null);
+}
+
+
+
+-- old
+// CustomerServiced의 weeksDelinquent메서드의 경우 UnknownCustomer의 경우 Null Object 패턴을 사용해 디폴트 0 값을 설정해준다.
+
+public int weeksDelinquent(Site site) {
+        Customer customer = site.getCustomer();
+        return customer.getName().equals("unknown") ? 0 : customer.getPaymentHistory().getWeeksDelinquentInLastYear();
+}
+
+-- new
+// UnkownCustomer Class
+public UnknownCustomer() {
+        super("unknown", new BasicBillingPlan(), new NullPaymentHistory());
+}
+
+// NullPaymentHistory Class
+public NullPaymentHistory() {
+        super(0);
+}
+
+// CustomerService Class
+public int weeksDelinquent(Site site) {
+        return site.getCustomer().getPaymentHistory().getWeeksDelinquentInLastYear();
+}
+
+```
+
+</details>
+
+
+
+
