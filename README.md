@@ -1126,7 +1126,7 @@ authors.stream()
 이러한 매커니즘을 "특이 케이스 패턴"이라고 부르고 "Null Object 패턴"을 이러한 패턴의 특수한 형태라고 볼 수 있다.  
 
 ```
-
+1.
 -- old
 // 여러 메소드에서 customer의 name이 "unknown"인지 파악하는 코드가 반복된다. 
 // 따라서 UnknownCustomer 이라는 클래스를 만들어 반복 코드를 리팩토링한다.
@@ -1149,14 +1149,17 @@ public int weeksDelinquent(Site site) {
 ...
 
 -- new
-
 // UnknownCustomer Class extends Customer
 public UnknownCustomer() {
         super("unknown", null, null);
 }
 
+public String customerName(Site site) {
+        return site.getCustomer().getName();
+}	
 
 
+2.
 -- old
 // CustomerService에서 사용되는 Customer 정보는 site.getCustomer() 메서드를 통해 가져온다.
 // 이 메서드에서 Customer의 타입을 판별해 가지고 온다면 메서드를 간결하게 리팩토링할 수 있다.
@@ -1179,6 +1182,7 @@ public UnknownCustomer() {
 
 
 
+3.
 -- old
 // CustomerServiced의 weeksDelinquent메서드의 경우 UnknownCustomer의 경우 Null Object 패턴을 사용해 디폴트 0 값을 설정해준다.
 
