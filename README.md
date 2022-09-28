@@ -1249,7 +1249,7 @@ Person manager = keesun.getManager(keesun);
 </details>
 
 
-<details markdown="16">
+<details markdown="17">
 <summary> 17. 중재자 </summary>    
 
 캡슐화를 통해 내부의 구체적인 정보를 최대한 감출 수 있다.  
@@ -1262,5 +1262,28 @@ Person manager = keesun.getManager(keesun);
 위임하고 있는 객체를 클라이언트가 사용할 수 있도록 getter를 제공하고, 클라이언트는 메시지 체인을 사용하도록 코드를 고친 뒤에 캡슐화에 사용했던 메소드를 제거한다.  
 
 
+#### 2. 슈퍼클래스를 위임으로 바꾸기  
+객체지향에서 "상속"은 기존의 기능을 재사용하는 쉬우면서 강력한 방법이지만 떄로는 적절하지 않은 경우도 있다.  
+서브클래스는 슈퍼클래스의 모든 기능을 지원해야한다.  
+- Stack이라는 자료구조를 만들 때 List를 상속 받는것이 좋을까?  
+  
+서브클래스는 슈퍼클래스의 변경에 취약하다.  
+- 상속은 적절한 경우에 사용한다면 매우 쉽고 효율적인 방법이다.   
+- 따라서, 우선 상속을 적용한 이후에, 적절치 않다고 판단이 된다면 그때에 이 리팩토링을 적용하자.  
+
+```
+-- old
+public class Scroll extends CategoryItem {}
+
+-- new 
+private CategoryItem categoryItem; // 상위 타입을 필드로 선언
+
+// 생성자를 통해 슈퍼클래스를 위임으로 바꾼다.
+this.categoryItem = new CategoryItem(id, title, tags);
+
+// 상속 제거
+public class Scroll {
+```
 
 </details>
+
