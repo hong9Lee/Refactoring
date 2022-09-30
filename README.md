@@ -1282,7 +1282,66 @@ private CategoryItem categoryItem; // 상위 타입을 필드로 선언
 this.categoryItem = new CategoryItem(id, title, tags);
 
 // 상속 제거
-public class Scroll {
+public class Scroll 
+```
+
+#### 3. 서브클래스를 위임으로 바꾸기
+어떤 객체의 행동이 카테고리에 따라 바뀐다면, 보통 상속을 이용해서 일반적인 로직은 슈퍼클래스에 두고 특이한 케이스에 해당하는 로직을 서브클래스를 사용해 표현한다.  
+하지만, 대부분의 프로그래밍 언어에서 상속은 오직 한번만 사용할 수 있다.  
+- 만약에 어떤 객체를 두가지 이상의 카테고리로 구분해야 한다면?  
+- 위임을 사용하면 얼마든지 여러가지 이유로 여러 다른 객체로 위임을 할 수 있다.  
+  
+슈퍼클래스가 바뀌면 모든 서브클래스에 영향을 줄 수 있다. 따라서 슈퍼클래스를 변경할 때 서브클래스까지 신경써야 한다.  
+- 만약에 서브클래스가 전혀 다른 모듈에 있다면?  
+- 위임을 사용한다면 중간에 인터페이스를 만들어 의존성을 줄일 수 있다.  
+
+"상속 대신 위임을 선호하라" 는 결코 "상속은 나쁘다" 라는 말이 아니다.  
+- 처음엔 상속을 적용하고 언제든지 이런 리팩토링을 사용해 위임으로 전환할 수 있다.  
+
+```
+-- old
+// 기존 PremiumBooking은 Booking을 상속받은 서브클래스이다.
+// 이 클래스를 제거하고 위임 받는 클래스를 생성한다.
+
+// PremiumBooking Class
+public boolean hasTalkback() {
+        return this.show.hasOwnProperty("talkback");
+}
+...
+
+-- new
+// 1. 기존 Booking에 factory 메서드를 만든다.
+
+// factory 메서드를 만들면 메서드 이름으로 역할을 자유롭게 표현할 수 있다.
+public static Booking createBooking(Show show, LocalDateTime time) {
+        return new Booking(show, time);
+}
+
+public static Booking createPremiumBooking(Show show, LocalDateTime time, PremiumExtra extra) {
+        Booking booking = createBooking(show, time);
+        booking.premiumDelegate = new PremiumDelegate(booking, extra);
+        return booking;
+}
+
+
+// 2. 기존 PremiumBooking의 메소드들을 위임받은 PremiumDelegate 클래스로 옮겨온다.
+public class PremiumDelegate {
+	private Booking host;
+	private PremiumExtra extra;
+	
+	public boolean hasTalkback() {
+        	return this.host.show.hasOwnProperty("talkback");
+    	}
+	...
+
+
+// 3. 메서드를 사용할 때 Booking 인스턴스를 생성하는 것이 아닌 Booking에 작성한 factory 메서드를 사용한다.
+assertFalse(new Booking(lionKing, weekday).hasTalkback());   
+-> assertFalse(Booking.createBooking(lionKing, weekday).hasTalkback());  
+  
+assertTrue(new PremiumBooking(aladin, weekend, premiumExtra).hasTalkback()); 
+-> assertTrue(Booking.createPremiumBooking(aladin, weekend, premiumExtra).hasTalkback());
+
 ```
 
 </details>
