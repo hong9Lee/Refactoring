@@ -1348,3 +1348,35 @@ assertTrue(new PremiumBooking(aladin, weekend, premiumExtra).hasTalkback());
 
 </details>
 
+
+
+
+<details markdown="18">
+<summary> 18. 내부자 거래 </summary>    
+
+어떤 모듈이 다른 모듈의 내부 정보를 지나치게 많이 알고 있는 코드 냄새.  
+그로인해 지나치게 강한 결합도가 생길 수 있다.  
+  
+적절한 모듈로 "함수 옮기기"와 "필드 옮기기"를 사용해서 결합도를 낮출 수 있다.  
+여러 모듈이 자주 사용하는 공통적인 기능은 새로운 모듈을 만들어 잘 관리하거나, "위임 숨기기"를 사용해 특정 모듈의 중재자 처럼 사용할 수도 있다.  
+
+```
+CheckIn 클래스의 isFastPass 메서드는 Ticket 클래스의 정보를 많이 사용하고 있다.
+이러한 이유로 isFastPass 메서드를 Ticket 클래스로 옮길 수 있다.
+public class CheckIn {
+    public boolean isFastPass(Ticket ticket) {
+    ...
+    return ticket.isPrime() && ticket.getPurchasedDate().isBefore(earlyBirdDate);
+    }
+}
+
+CheckIn checkIn = new CheckIn();
+assertTrue(checkIn.isFastPass(new Ticket(LocalDate.of(2021, 12, 31), true)));
+
+->
+
+assertTrue(new Ticket(LocalDate.of(2021, 12, 31), true).isFastPass());
+
+```
+
+</details>
