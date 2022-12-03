@@ -1033,7 +1033,7 @@ if(voyage.zone().equals("china") && hasChinaHistory(history)) {
 }
 
 
-// VoyageRating을 상속받은 ChinaExperiencedVoyageRating 하위 Class
+// VoyageRating을 상속받은 ChinaExperiencedVoyageRating 하위 메서드에 조건식을 구현
 protected int voyageLengthFactor() {
         int result = 0;
         result += 3;
