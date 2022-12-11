@@ -1380,3 +1380,48 @@ assertTrue(new Ticket(LocalDate.of(2021, 12, 31), true).isFastPass());
 ```
 
 </details>
+
+
+
+<details markdown="19">
+<summary> 19. 거대한 클래스 </summary>    
+
+어떤 클래스가 너무 많은 일을 하다보면 필드도 많아지고 중복 코드도 보이기 시작한다.  
+클라이언트가 해당 클래스가 제공하는 기능 중에 일부만 사용한다면 각각의 세부 기능을 별도의 클래스로 분리할 수 있다.  
+- 클래스 추출하기를 사용해 관련있는 필드를 한 곳으로 모을 수 있다.  
+- 상속구조를 만들 수 있다면 슈퍼클래스 추출하기 또는 타입 코드를 서브 클래스로 교체하기를 적용할 수 있다.  
+클래스 내부에 산재하는 중복 코드는 메소드를 추출하여 제거할 수 있다.  
+
+
+
+#### 슈퍼 클래스 추출하기  
+
+두개의 클래스에서 비슷한 것들이 보인다면 상속을 적용한다.  
+우선은 간단히 상속을 적용한 이후, 나중에 필요하다면 슈퍼클래스를 위임으로 교체하기를 적용한다.  
+
+```
+// Party 슈퍼 클래스를 생성해 클래스들에서 공통적으로 사용되는 name, 메서드를 Pull up하여 정의한다.
+public double annualCost() {
+	return this.monthlyCost() * 12;
+}
+
+abstract protected double monthlyCost();
+
+
+// Department Class
+public class Department extends Party {
+
+	public Department(String name) {
+		super(name);
+	}
+    
+@Override
+public double monthlyCost() {
+	return this.staff.stream().mapToDouble(e -> e.monthlyCost()).sum();
+}
+```
+
+
+
+
+</details>
